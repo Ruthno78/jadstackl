@@ -1,0 +1,98 @@
+name: Build JADSTACK LOTTO APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-apk:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    # V96 — 20 min te two kout pou yon premye run "frèt" (telechajman
+    # Gradle 8.7 + AGP + Kotlin + BOM Firebase pou premye fwa).
+    # Monte a 45 min pou evite yon timeout ki sanble ak yon "blokaj".
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Accept Android SDK licenses
+        run: yes | sdkmanager --licenses >/dev/null || true
+
+      - name: Install Android SDK packages
+        run: |
+          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+
+      # V96 — setup-gradle@v4 kapab kenbe cache Gradle (dependencies +
+      # build cache) ant run yo otomatikman lè cache-read-only se false.
+      # Sa fè run apre premye a rapid anpil (pa oblije retelechaje tout
+      # depandans yo, ki se prensipal koz blokaj/timeout sou premye run).
+      - name: Set up Gradle 8.7 and caching
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.7
+          cache-read-only: false
+          cache-encryption-key: ${{ secrets.GRADLE_CACHE_ENCRYPTION_KEY }}
+
+      - name: Verify build tools
+        working-directory: android
+        run: |
+          java -version
+          gradle --version
+          test -f settings.gradle.kts
+          test -f app/build.gradle.kts
+          test -f gradle/wrapper/gradle-wrapper.jar
+
+      - name: Sync agent assets into APK
+        run: |
+          chmod +x scripts/sync-android-assets.sh
+          ./scripts/sync-android-assets.sh
+
+      # V96 — --build-cache aktive cache tach Gradle la (pa sèlman
+      # depandans), --info bay plis detay si yon tach rete "bloke".
+      - name: Build debug APK
+        working-directory: android
+        run: gradle assembleDebug --no-daemon --stacktrace --console=plain --build-cache
+
+      - name: Verify APK output
+        working-directory: android
+        run: |
+          test -s app/build/outputs/apk/debug/app-debug.apk
+          ls -lh app/build/outputs/apk/debug/app-debug.apk
+          mkdir -p output
+          cp app/build/outputs/apk/debug/app-debug.apk output/JADSTACK-LOTTO-debug.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: JADSTACK-LOTTO-APK
+          path: android/output/JADSTACK-LOTTO-debug.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      # V96 — si build la echwe, chaje rapò yo pou wè ki tach ki blije.
+      - name: Upload Gradle reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gradle-reports
+          path: android/app/build/reports
+          if-no-files-found: ignore

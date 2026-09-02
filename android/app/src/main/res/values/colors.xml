@@ -1,0 +1,22 @@
+<resources>
+    <!-- V98 — Aliyen egzat ak koulè yo ekstrè nan logo a (menm valè ak
+         tokens brand-navy / brand-blue / brand-lime nan tokens.css). -->
+    <color name="brand_navy">#004E8C</color>
+    <color name="brand_blue">#0077BD</color>
+    <color name="brand_lime">#ADE802</color>
+    <color name="brand_lime_d">#79BE0B</color>
+
+    <!-- Fon splash / status-bar / nav-bar (mòd klè) -->
+    <color name="brand_bg">#004E8C</color>
+    <color name="brand_primary">#0077BD</color>
+    <color name="brand_accent">#79BE0B</color>
+    <color name="white">#FFFFFF</color>
+    <!-- Logo APK: brand-name logo sou fon blan -->
+    <color name="icon_bg">#FFFFFF</color>
+
+    <!-- Fon dark theme, style WhatsApp: fonse san rive nwa pi (idantik
+         ak koulè bg/surface nan tokens.css dark mode). -->
+    <color name="brand_bg_dark">#0B1622</color>
+    <color name="brand_surface_dark">#122132</color>
+    <color name="brand_primary_dark">#4C8FC4</color>
+</resources>
