@@ -88,7 +88,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      # V96 — si build la echwe, chaje rapò yo pou wè ki tach ki blije.
+      # V96 — si build la echwe
       - name: Upload Gradle reports on failure
         if: failure()
         uses: actions/upload-artifact@v4
@@ -96,3 +96,4 @@ jobs:
           name: gradle-reports
           path: android/app/build/reports
           if-no-files-found: ignore
+
